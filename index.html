@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#25324A">
+<meta name="theme-color" content="#3C3934">
 <title>美股記帳</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,88 +13,87 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
-    --paper:#F5F0E1; --paper-line:#DDD3B4; --card:#FBF8EF;
-    --ink:#25324A; --ink-soft:#6B7186; --ink-faint:#9B9583;
-    --gold:#9C7A2E; --gold-soft:#C7A94F;
-    --red:#B4362A; --red-bg:#F3E2DE;
-    --green:#2F6E4F; --green-bg:#E1EBE1;
-    --stamp:#A83A2E; --radius:14px;
+    --paper:#F7F5F0; --paper-line:#E4E0D3; --card:#FFFFFF;
+    --ink:#3C3934; --ink-soft:#8B8579; --ink-faint:#B7B1A2;
+    --accent:#8A7A63; --accent-soft:#CBBFA8;
+    --red:#AD6C51; --red-bg:#F1E6DF;
+    --green:#7C8A70; --green-bg:#EAECE3;
+    --radius:3px;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--paper);background-image:repeating-linear-gradient(transparent, transparent 27px, var(--paper-line) 28px);color:var(--ink);font-family:'Noto Sans TC','Noto Sans',sans-serif;padding:24px 14px 60px;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Noto Sans TC','Noto Sans',sans-serif;padding:28px 16px 60px;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:600px;margin:0 auto;}
-  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  h1{font-family:'Noto Serif TC',serif;font-weight:700;font-size:26px;margin:0 0 14px;letter-spacing:.02em;}
-  .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px;}
-  .tab-btn{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;white-space:nowrap;flex-shrink:0;}
-  .tab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  h1{font-family:'Noto Sans TC',sans-serif;font-weight:500;font-size:22px;margin:0 0 20px;letter-spacing:.06em;color:var(--ink);}
+  .tabs{display:flex;gap:0;overflow-x:auto;margin-bottom:20px;border-bottom:1px solid var(--paper-line);}
+  .tab-btn{font-family:'Noto Sans TC',sans-serif;font-size:12.5px;font-weight:500;padding:9px 14px;border-radius:0;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--ink-faint);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--ink);}
   .view{display:none;} .view.active{display:block;}
-  .hero{position:relative;background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:22px 20px 20px;margin-bottom:16px;overflow:hidden;}
-  .hero-label{font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
-  .hero-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;letter-spacing:-.01em;}
-  .badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;padding:3px 9px;border-radius:999px;margin-top:10px;}
+  .hero{position:relative;background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:24px 20px;margin-bottom:20px;}
+  .hero-label{font-size:12px;color:var(--ink-soft);margin-bottom:8px;letter-spacing:.03em;}
+  .hero-value{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:30px;letter-spacing:-.01em;color:var(--ink);}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;padding:3px 8px;border-radius:var(--radius);margin-top:10px;}
   .up{color:var(--red);background:var(--red-bg);} .down{color:var(--green);background:var(--green-bg);}
-  .stamp{position:absolute;top:16px;right:18px;width:60px;height:60px;border-radius:50%;border:2px solid var(--stamp);color:var(--stamp);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:'Noto Serif TC',serif;font-weight:700;font-size:10px;line-height:1.3;transform:rotate(-9deg);opacity:.75;text-align:center;}
-  .stamp small{font-size:9px;font-weight:500;letter-spacing:.06em;}
-  .section-title{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;color:var(--ink-soft);margin:20px 2px 8px;display:flex;align-items:center;gap:8px;}
+  .section-title{font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:500;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase;margin:24px 2px 10px;display:flex;align-items:center;gap:8px;}
   .section-title::after{content:'';flex:1;height:1px;background:var(--paper-line);}
   .ledger{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);overflow:hidden;}
-  .row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px dashed var(--paper-line);}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--paper-line);}
   .row:last-child{border-bottom:none;}
-  .row-name{font-size:14px;font-weight:500;}
+  .row-name{font-size:13.5px;font-weight:500;color:var(--ink);}
   .row-right{text-align:right;}
-  .row-value{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;}
-  .row-chg{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:2px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .stat{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:14px 15px;}
-  .stat-label{font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
-  .stat-usd{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;}
-  .stat-twd{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:2px;}
-  .stat-pct{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:6px;display:inline-block;}
+  .row-value{font-family:'JetBrains Mono',monospace;font-size:14.5px;font-weight:500;color:var(--ink);}
+  .row-chg{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:3px;color:var(--ink-soft);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--paper-line);border:1px solid var(--paper-line);border-radius:var(--radius);overflow:hidden;}
+  .stat{background:var(--card);padding:15px 16px;}
+  .stat-label{font-size:11.5px;color:var(--ink-soft);margin-bottom:7px;}
+  .stat-usd{font-family:'JetBrains Mono',monospace;font-size:15.5px;font-weight:500;color:var(--ink);}
+  .stat-twd{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+  .stat-pct{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:7px;display:inline-block;color:var(--ink-soft);}
   .tblwrap{overflow-x:auto;border:1px solid var(--paper-line);border-radius:var(--radius);background:var(--card);}
-  table{border-collapse:collapse;width:100%;font-size:12.5px;}
-  th{font-family:'Noto Sans TC',sans-serif;font-weight:500;color:var(--ink-soft);text-align:right;padding:9px 10px;border-bottom:1px solid var(--paper-line);white-space:nowrap;background:var(--card);}
+  table{border-collapse:collapse;width:100%;font-size:12px;}
+  th{font-family:'Noto Sans TC',sans-serif;font-weight:500;color:var(--ink-soft);text-align:right;padding:10px 10px;border-bottom:1px solid var(--paper-line);white-space:nowrap;background:var(--card);font-size:11px;letter-spacing:.02em;}
   th:first-child, td:first-child{text-align:left;}
-  td{font-family:'JetBrains Mono',monospace;text-align:right;padding:8px 10px;border-bottom:1px dashed var(--paper-line);white-space:nowrap;}
+  td{font-family:'JetBrains Mono',monospace;text-align:right;padding:9px 10px;border-bottom:1px solid var(--paper-line);white-space:nowrap;color:var(--ink);}
   tr:last-child td{border-bottom:none;}
   .pos{color:var(--red);} .neg{color:var(--green);}
-  .type-buy{color:var(--red);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
-  .type-sell{color:var(--green);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
-  .type-split{color:var(--gold);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
+  .type-buy{color:var(--red);font-family:'Noto Sans TC',sans-serif;font-size:11px;}
+  .type-sell{color:var(--green);font-family:'Noto Sans TC',sans-serif;font-size:11px;}
+  .type-split{color:var(--accent);font-family:'Noto Sans TC',sans-serif;font-size:11px;}
   .chart-box{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px;position:relative;height:240px;}
-  .foot-note{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:10px;}
-  .cell-input{width:74px;font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;border:1px solid var(--paper-line);border-radius:6px;padding:3px 6px;background:#fff;color:var(--ink);}
-  .form-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:14px 15px;margin-bottom:14px;}
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-  .form-grid label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;}
-  .form-grid input,.form-grid select{width:100%;font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid var(--paper-line);border-radius:8px;padding:7px 8px;background:#fff;color:var(--ink);}
-  .btn{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;padding:9px 16px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink);cursor:pointer;}
+  .foot-note{font-size:11px;color:var(--ink-faint);text-align:center;margin-top:12px;}
+  .cell-input{width:74px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;border:1px solid var(--paper-line);border-radius:var(--radius);padding:4px 6px;background:var(--paper);color:var(--ink);}
+  .form-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .form-grid label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px;}
+  .form-grid input,.form-grid select{width:100%;font-family:'JetBrains Mono',monospace;font-size:12.5px;border:1px solid var(--paper-line);border-radius:var(--radius);padding:8px;background:var(--paper);color:var(--ink);}
+  .btn{font-family:'Noto Sans TC',sans-serif;font-size:12.5px;font-weight:500;padding:9px 16px;border-radius:var(--radius);border:1px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer;letter-spacing:.02em;}
   .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-  .btn.small{padding:4px 10px;font-size:11.5px;}
-  .btn:active{transform:scale(.97);}
-  .del-btn{color:var(--red);cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:11.5px;background:none;border:none;padding:2px 4px;}
-  textarea{width:100%;font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid var(--paper-line);border-radius:8px;padding:8px;background:#fff;color:var(--ink);min-height:70px;}
-  .collapse-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:10px 2px;font-size:13px;font-weight:500;color:var(--ink-soft);}
-  .save-hint{font-size:11.5px;color:var(--ink-faint);margin-top:8px;text-align:center;}
-  .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .btn.small{padding:5px 11px;font-size:11px;}
+  .btn:active{opacity:.7;}
+  .del-btn{color:var(--ink-faint);cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:11px;background:none;border:none;padding:2px 4px;text-decoration:underline;}
+  textarea{width:100%;font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid var(--paper-line);border-radius:var(--radius);padding:8px;background:var(--paper);color:var(--ink);min-height:70px;}
+  .collapse-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:10px 2px;font-size:12.5px;font-weight:500;color:var(--ink-soft);}
+  .save-hint{font-size:11px;color:var(--ink-faint);margin-top:10px;text-align:center;}
+  .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
   .title-row h1{margin:0;}
-  .refresh-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-  .refresh-btn:active{transform:rotate(45deg);}
-  .refresh-btn svg{width:18px;height:18px;}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:12.5px;padding:9px 16px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;}
+  .refresh-btn{width:34px;height:34px;border-radius:var(--radius);border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  .refresh-btn:active{opacity:.6;}
+  .refresh-btn svg{width:16px;height:16px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:12px;padding:9px 16px;border-radius:var(--radius);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;}
   .toast.show{opacity:1;}
-  .period-tabs{display:flex;gap:6px;margin-bottom:12px;}
-  .period-btn{font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
-  .period-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-  .hilo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-  .hilo-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:12px 14px;}
-  .hilo-title{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
-  .hilo-line{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 0;}
+  .period-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--paper-line);border-radius:var(--radius);overflow:hidden;width:fit-content;}
+  .period-btn{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:7px 13px;border:none;border-right:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
+  .period-btn:last-child{border-right:none;}
+  .period-btn.active{background:var(--ink);color:var(--paper);}
+  .hilo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--paper-line);border:1px solid var(--paper-line);border-radius:var(--radius);overflow:hidden;margin-top:14px;}
+  .hilo-card{background:var(--card);padding:13px 14px;}
+  .hilo-title{font-size:11px;color:var(--ink-soft);margin-bottom:9px;letter-spacing:.03em;}
+  .hilo-line{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:3px 0;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow"><span>PASSBOOK / 資產總覽</span><span id="todayLabel"></span></div>
+  <div class="eyebrow"><span>資產總覽</span><span id="todayLabel"></span></div>
   <div class="title-row">
     <h1>美股記帳</h1>
     <div class="refresh-btn" id="refreshBtn" title="請 Claude 重新同步試算表">
@@ -115,7 +114,7 @@
   <div class="view active" id="view-overview"></div>
   <div class="view" id="view-holdings"></div>
   <div class="view" id="view-trend">
-    <div class="section-title">市值走勢（歷史快照）</div>
+    <div class="section-title">市值走勢</div>
     <div class="period-tabs">
       <button class="period-btn" data-period="1M">1個月</button>
       <button class="period-btn active" data-period="3M">3個月</button>
@@ -124,7 +123,7 @@
     </div>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
     <div class="hilo-grid" id="hiloGrid"></div>
-    <div class="foot-note">紅線：美股市值（TWD）　藍線：台股市值（TWD）— 此圖為靜態歷史資料，不會隨新交易自動延伸。</div>
+    <div class="foot-note">紅線：美股市值（TWD）　藍線：台股市值（TWD）— 每次打開 App 會自動記錄當天一筆市值（依當時的股價設定計算），2026/8/8 以前為試算表歷史資料。</div>
   </div>
   <div class="view" id="view-tx"></div>
   <div class="view" id="view-div"></div>
@@ -269,7 +268,7 @@ const SEED_CHG = {
 
 const NAMES = {'2330':'台積電','2383':'台光電','2382':'廣達','2454':'聯發科','3443':'創意','2308':'台達電','2317':'鴻海','00895':'富邦未來車','00733':'富邦台灣中小','00981A':'主動統一台股增長','0056':'元大高股息'};
 
-let state = { txs:[], divs:[], prices:{}, chg:{}, fx:32.3, finnhubKey:'' };
+let state = { txs:[], divs:[], prices:{}, chg:{}, fx:32.3, finnhubKey:'', trendLog:[] };
 
 function seedState(){
   state = {
@@ -278,7 +277,8 @@ function seedState(){
     prices: {...SEED_PRICES},
     chg: {...SEED_CHG},
     fx: 32.3,
-    finnhubKey: ''
+    finnhubKey: '',
+    trendLog: []
   };
 }
 
@@ -300,15 +300,38 @@ async function storageSet(key, value){
 }
 
 async function persist(){
+  logTodayTrend();
   const ok = await storageSet('portfolio-state-v1', JSON.stringify(state));
   document.getElementById('saveHint').textContent = ok ? ('已自動儲存・' + new Date().toLocaleTimeString('zh-TW')) : '儲存失敗，請稍後再試';
 }
 
 async function loadState(){
   const raw = await storageGet('portfolio-state-v1');
-  if(raw){ try{ state = JSON.parse(raw); if(state.finnhubKey===undefined) state.finnhubKey=''; return; }catch(e){} }
+  if(raw){ try{ state = JSON.parse(raw); if(state.finnhubKey===undefined) state.finnhubKey=''; if(!state.trendLog) state.trendLog=[]; return; }catch(e){} }
   seedState();
   await persist();
+}
+
+function logTodayTrend(){
+  const holdings = computeHoldings();
+  let usMV = 0, twMV = 0;
+  holdings.forEach(h=>{
+    const acc = ACCOUNTS.find(a=>a.key===h.account);
+    const mvNative = h.shares * priceOf(h.t);
+    const mvTWD = acc.currency === 'USD' ? mvNative * state.fx : mvNative;
+    if(acc.key === 'JS-US') usMV += mvTWD; else twMV += mvTWD;
+  });
+  const todayISO = new Date().toISOString().slice(0,10);
+  if(!state.trendLog) state.trendLog = [];
+  const idx = state.trendLog.findIndex(x=>x.d===todayISO);
+  const entry = {d:todayISO, us:usMV, tw:twMV};
+  if(idx>=0) state.trendLog[idx] = entry; else state.trendLog.push(entry);
+}
+
+function getCombinedTrend(){
+  const staticDates = new Set(trendData.map(x=>x.d));
+  const extra = (state.trendLog||[]).filter(x=>!staticDates.has(x.d));
+  return [...trendData, ...extra].sort((a,b)=>a.d.localeCompare(b.d));
 }
 
 function computeHoldings(){
@@ -381,7 +404,6 @@ function renderOverview(holdings){
   const el = document.getElementById('view-overview');
   el.innerHTML = `
     <div class="hero">
-      <div class="stamp"><small>本日</small>結餘<small id="stampDate2"></small></div>
       <div class="hero-label">總市值（台幣）</div>
       <div class="hero-value">NT$ ${fmt(totalMV)}</div>
       <div class="badge ${totalPct>=0?'up':'down'}">${totalPct>=0?'▲':'▼'} ${Math.abs(totalPct).toFixed(2)}%</div>
@@ -411,7 +433,6 @@ function renderOverview(holdings){
     </div>
     <div class="foot-note">美元匯率 <input class="cell-input" id="fxInput" type="number" step="0.01" value="${state.fx}" style="width:64px"> （更新後套用到所有美股台幣換算）</div>
   `;
-  document.getElementById('stampDate2').textContent = now.toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
   document.getElementById('fxInput').onchange = e => { state.fx = parseFloat(e.target.value)||state.fx; persist(); renderAll(); };
 }
 
@@ -457,8 +478,12 @@ function renderHoldings(holdings){
   ACCOUNTS.forEach(a=>{
     const rows = holdings.filter(h=>h.account===a.key);
     if(!rows.length) return;
+    const showCost = a.currency === 'USD';
+    const headCols = showCost
+      ? `<th>股票</th><th>股數</th><th>均價</th><th>現價</th><th>漲跌%</th><th>市值</th><th>未實現損益</th>`
+      : `<th>股票</th><th>股數</th><th>現價</th><th>漲跌%</th><th>市值</th>`;
     html += `<div class="section-title">${a.label}</div><div class="tblwrap"><table>
-      <tr><th>股票</th><th>股數</th><th>均價</th><th>現價</th><th>漲跌%</th><th>市值</th><th>未實現損益</th></tr>
+      <tr>${headCols}</tr>
       ${rows.map(h=>{
         const price = priceOf(h.t);
         const chg = chgOf(h.t);
@@ -466,14 +491,17 @@ function renderHoldings(holdings){
         const unreal = mv - h.shares*h.avgCost;
         const unrealPct = h.avgCost ? (unreal/(h.shares*h.avgCost))*100 : 0;
         const nm = nameOf(h.t);
+        const nameCell = `<td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;">${h.t}${nm?`<br><span style="color:var(--ink-faint);font-size:11px;">${nm}</span>`:''}</td>`;
+        const costCell = showCost ? `<td>${fmt2(h.avgCost)}</td>` : '';
+        const unrealCell = showCost ? `<td class="${unreal>=0?'pos':'neg'}">${unreal>=0?'+':''}${fmt(unreal)} (${unrealPct>=0?'+':''}${unrealPct.toFixed(1)}%)</td>` : '';
         return `<tr>
-          <td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;">${h.t}${nm?`<br><span style="color:var(--ink-faint);font-size:11px;">${nm}</span>`:''}</td>
+          ${nameCell}
           <td>${fmt(h.shares)}</td>
-          <td>${fmt2(h.avgCost)}</td>
+          ${costCell}
           <td><input class="cell-input" type="number" step="0.01" value="${price}" data-t="${h.t}" data-field="price"></td>
           <td><input class="cell-input" type="number" step="0.1" value="${chg}" data-t="${h.t}" data-field="chg" style="width:56px"></td>
           <td>${fmt(mv)}</td>
-          <td class="${unreal>=0?'pos':'neg'}">${unreal>=0?'+':''}${fmt(unreal)} (${unrealPct>=0?'+':''}${unrealPct.toFixed(1)}%)</td>
+          ${unrealCell}
         </tr>`;
       }).join('')}
     </table></div>`;
@@ -568,7 +596,7 @@ function renderSettings(){
     <div class="form-card">
       <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;line-height:1.6;">
         美股即時報價使用 <b>Finnhub</b>（免費申請，每分鐘 60 次額度）。到
-        <a href="https://finnhub.io/register" target="_blank" style="color:var(--gold);">finnhub.io/register</a>
+        <a href="https://finnhub.io/register" target="_blank" style="color:var(--accent);">finnhub.io/register</a>
         免費註冊拿到 API Key 後貼在下面。台股報價會嘗試直接連證交所公開端點，不需要 Key，但部分瀏覽器環境可能因跨網域限制（CORS）而失敗，失敗時可改用「批次更新」手動貼上。
       </div>
       <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;">Finnhub API Key</label>
@@ -599,6 +627,7 @@ function renderTx(){
   const sorted = [...state.txs].sort((a,b)=> b.d.localeCompare(a.d));
   const typeLabel = {Buy:'買進',Sell:'賣出',Split:'分割'};
   const typeClass = {Buy:'type-buy',Sell:'type-sell',Split:'type-split'};
+  const newCount = state.txs.filter(x=>x.origin==='app').length;
   el.innerHTML = `
     <div class="form-card">
       <div class="section-title" style="margin-top:0;">新增交易</div>
@@ -613,7 +642,10 @@ function renderTx(){
       </div>
       <button class="btn primary" id="txAdd">新增交易</button>
     </div>
-    <div class="section-title">交易紀錄（新到舊）</div>
+    <div class="section-title" style="margin-top:0;display:flex;justify-content:space-between;align-items:center;">
+      <span>交易紀錄（新到舊）</span>
+      <button class="btn small" id="txExportBtn" ${newCount? '' : 'disabled style="opacity:.4;cursor:default;"'}>複製新增交易到剪貼簿（${newCount}）</button>
+    </div>
     <div class="tblwrap"><table>
       <tr><th>日期</th><th>帳戶</th><th>類型</th><th>代號</th><th>股數</th><th>價格</th><th></th></tr>
       ${sorted.map(x=>`<tr>
@@ -636,7 +668,7 @@ function renderTx(){
     const price = parseFloat(document.getElementById('txPrice').value)||0;
     const fee = parseFloat(document.getElementById('txFee').value)||0;
     if(!d || !t || (!shares && type!=='Split') || !price){ alert('請完整填寫日期、代號、股數與價格'); return; }
-    state.txs.push({id:uid(), d, account, type, t, shares, price, fee});
+    state.txs.push({id:uid(), d, account, type, t, shares, price, fee, origin:'app'});
     if(state.prices[t] === undefined) state.prices[t] = price;
     persist(); renderAll();
   };
@@ -646,6 +678,21 @@ function renderTx(){
       persist(); renderAll();
     };
   });
+  const exportBtn = document.getElementById('txExportBtn');
+  if(exportBtn && newCount){
+    exportBtn.onclick = async ()=>{
+      const newTxs = state.txs.filter(x=>x.origin==='app').sort((a,b)=>a.d.localeCompare(b.d));
+      const accLabel = {'JS-US':'JS美股','JS-TW':'JS台股','Mia-TW':'Mia台股'};
+      const typeLabelMap = {Buy:'買進',Sell:'賣出',Split:'分割'};
+      const tsv = newTxs.map(x=> [x.d, accLabel[x.account]||x.account, typeLabelMap[x.type], x.t, x.type==='Split'?'':x.shares, x.price, x.fee||0].join('\t')).join('\n');
+      try{
+        await navigator.clipboard.writeText(tsv);
+        showToast(`已複製 ${newTxs.length} 筆新交易，貼到試算表的交易紀錄分頁即可`);
+      }catch(e){
+        showToast('複製失敗，請手動框選表格內容複製');
+      }
+    };
+  }
 }
 
 function renderDiv(){
@@ -654,6 +701,7 @@ function renderDiv(){
   const sums = {};
   state.divs.forEach(x=>{ sums[x.t] = (sums[x.t]||0) + x.net; });
   const sumRows = Object.entries(sums).sort((a,b)=>b[1]-a[1]);
+  const newCount = state.divs.filter(x=>x.origin==='app').length;
   el.innerHTML = `
     <div class="form-card">
       <div class="section-title" style="margin-top:0;">新增股息</div>
@@ -670,7 +718,10 @@ function renderDiv(){
       <tr><th>代號</th><th>累計實收$</th></tr>
       ${sumRows.map(([t,v])=>`<tr><td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;text-align:left;">${t}</td><td class="pos">+${fmt2(v)}</td></tr>`).join('')}
     </table></div>
-    <div class="section-title">股息明細（新到舊）</div>
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>股息明細（新到舊）</span>
+      <button class="btn small" id="divExportBtn" ${newCount? '' : 'disabled style="opacity:.4;cursor:default;"'}>複製新增股息到剪貼簿（${newCount}）</button>
+    </div>
     <div class="tblwrap"><table>
       <tr><th>發放日</th><th>代號</th><th>股數</th><th>實收$</th><th></th></tr>
       ${sorted.map(x=>`<tr>
@@ -688,7 +739,7 @@ function renderDiv(){
     const shares = parseFloat(document.getElementById('divShares').value)||0;
     const net = parseFloat(document.getElementById('divNet').value)||0;
     if(!d || !t || !net){ alert('請完整填寫發放日、代號與實收股息'); return; }
-    state.divs.push({id:uid(), d, t, shares, net});
+    state.divs.push({id:uid(), d, t, shares, net, origin:'app'});
     persist(); renderAll();
   };
   el.querySelectorAll('.del-btn').forEach(btn=>{
@@ -697,6 +748,19 @@ function renderDiv(){
       persist(); renderAll();
     };
   });
+  const exportBtn = document.getElementById('divExportBtn');
+  if(exportBtn && newCount){
+    exportBtn.onclick = async ()=>{
+      const newDivs = state.divs.filter(x=>x.origin==='app').sort((a,b)=>a.d.localeCompare(b.d));
+      const tsv = newDivs.map(x=> [x.d, x.t, x.shares, x.net].join('\t')).join('\n');
+      try{
+        await navigator.clipboard.writeText(tsv);
+        showToast(`已複製 ${newDivs.length} 筆新股息，貼到試算表的股息紀錄分頁即可`);
+      }catch(e){
+        showToast('複製失敗，請手動框選表格內容複製');
+      }
+    };
+  }
 }
 
 const trendData = [
@@ -755,13 +819,14 @@ let trendChartInstance = null;
 let currentPeriod = '3M';
 
 function filterByPeriod(period){
-  const last = new Date(trendData[trendData.length-1].d);
+  const combined = getCombinedTrend();
+  const last = new Date(combined[combined.length-1].d);
   let start;
   if(period === '1M'){ start = new Date(last); start.setMonth(start.getMonth()-1); }
   else if(period === '3M'){ start = new Date(last); start.setMonth(start.getMonth()-3); }
   else if(period === '6M'){ start = new Date(last); start.setMonth(start.getMonth()-6); }
   else if(period === 'YTD'){ start = new Date(last.getFullYear(), 0, 1); }
-  return trendData.filter(x => new Date(x.d) >= start);
+  return combined.filter(x => new Date(x.d) >= start);
 }
 
 function labelOf(iso){ const [y,m,d] = iso.split('-'); return m+'/'+d; }
@@ -780,22 +845,22 @@ function drawChart(period){
   });
 
   const usPointR = data.map((_,i)=> (i===usMaxI||i===usMinI) ? 5 : 0);
-  const usPointC = data.map((_,i)=> i===usMaxI ? '#B4362A' : i===usMinI ? '#7A9BC4' : '#B4362A');
+  const usPointC = data.map((_,i)=> i===usMaxI ? '#AD6C51' : i===usMinI ? '#9AA5AD' : '#AD6C51');
   const twPointR = data.map((_,i)=> (i===twMaxI||i===twMinI) ? 5 : 0);
-  const twPointC = data.map((_,i)=> i===twMaxI ? '#B4362A' : i===twMinI ? '#7A9BC4' : '#2358A8');
+  const twPointC = data.map((_,i)=> i===twMaxI ? '#AD6C51' : i===twMinI ? '#9AA5AD' : '#5D7280');
 
   if(trendChartInstance){ trendChartInstance.destroy(); }
   const ctx = document.getElementById('trendChart').getContext('2d');
   trendChartInstance = new Chart(ctx, {
     type:'line',
     data:{ labels: data.map(d=>labelOf(d.d)), datasets:[
-      {label:'美股市值', data: data.map(d=>d.us), borderColor:'#B4362A', backgroundColor:'transparent', tension:0.25, pointRadius: usPointR, pointBackgroundColor: usPointC, pointBorderColor: usPointC, borderWidth:2},
-      {label:'台股市值', data: data.map(d=>d.tw), borderColor:'#2358A8', backgroundColor:'transparent', tension:0.25, pointRadius: twPointR, pointBackgroundColor: twPointC, pointBorderColor: twPointC, borderWidth:2}
+      {label:'美股市值', data: data.map(d=>d.us), borderColor:'#AD6C51', backgroundColor:'transparent', tension:0.25, pointRadius: usPointR, pointBackgroundColor: usPointC, pointBorderColor: usPointC, borderWidth:2},
+      {label:'台股市值', data: data.map(d=>d.tw), borderColor:'#5D7280', backgroundColor:'transparent', tension:0.25, pointRadius: twPointR, pointBackgroundColor: twPointC, pointBorderColor: twPointC, borderWidth:2}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} },
       scales:{
-        x:{ ticks:{ maxTicksLimit:6, font:{family:"'JetBrains Mono',monospace", size:10}, color:'#6B7186' }, grid:{ display:false } },
-        y:{ ticks:{ callback:v=>(v/10000).toFixed(0)+'萬', font:{family:"'JetBrains Mono',monospace", size:10}, color:'#6B7186' }, grid:{ color:'#DDD3B4' } }
+        x:{ ticks:{ maxTicksLimit:6, font:{family:"'JetBrains Mono',monospace", size:10}, color:'#8B8579' }, grid:{ display:false } },
+        y:{ ticks:{ callback:v=>(v/10000).toFixed(0)+'萬', font:{family:"'JetBrains Mono',monospace", size:10}, color:'#8B8579' }, grid:{ color:'#E4E0D3' } }
       }
     }
   });
@@ -803,13 +868,13 @@ function drawChart(period){
   document.getElementById('hiloGrid').innerHTML = `
     <div class="hilo-card">
       <div class="hilo-title">美股市值（TWD）</div>
-      <div class="hilo-line" style="color:var(--red)"><span>最高</span><span>NT$ ${fmt(data[usMaxI].us)}（${labelOf(data[usMaxI].d)}）</span></div>
-      <div class="hilo-line" style="color:#7A9BC4"><span>最低</span><span>NT$ ${fmt(data[usMinI].us)}（${labelOf(data[usMinI].d)}）</span></div>
+      <div class="hilo-line" style="color:#AD6C51"><span>最高</span><span>NT$ ${fmt(data[usMaxI].us)}（${labelOf(data[usMaxI].d)}）</span></div>
+      <div class="hilo-line" style="color:#9AA5AD"><span>最低</span><span>NT$ ${fmt(data[usMinI].us)}（${labelOf(data[usMinI].d)}）</span></div>
     </div>
     <div class="hilo-card">
       <div class="hilo-title">台股市值（TWD）</div>
-      <div class="hilo-line" style="color:var(--red)"><span>最高</span><span>NT$ ${fmt(data[twMaxI].tw)}（${labelOf(data[twMaxI].d)}）</span></div>
-      <div class="hilo-line" style="color:#7A9BC4"><span>最低</span><span>NT$ ${fmt(data[twMinI].tw)}（${labelOf(data[twMinI].d)}）</span></div>
+      <div class="hilo-line" style="color:#AD6C51"><span>最高</span><span>NT$ ${fmt(data[twMaxI].tw)}（${labelOf(data[twMaxI].d)}）</span></div>
+      <div class="hilo-line" style="color:#9AA5AD"><span>最低</span><span>NT$ ${fmt(data[twMinI].tw)}（${labelOf(data[twMinI].d)}）</span></div>
     </div>
   `;
 }
@@ -841,6 +906,8 @@ document.getElementById('refreshBtn').addEventListener('click', async ()=>{
 
 (async function init(){
   await loadState();
+  logTodayTrend();
+  await persist();
   renderAll();
 })();
 </script>
