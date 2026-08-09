@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#25324A">
+<title>美股記帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#F5F0E1; --paper-line:#DDD3B4; --card:#FBF8EF;
+    --ink:#25324A; --ink-soft:#6B7186; --ink-faint:#9B9583;
+    --gold:#9C7A2E; --gold-soft:#C7A94F;
+    --red:#B4362A; --red-bg:#F3E2DE;
+    --green:#2F6E4F; --green-bg:#E1EBE1;
+    --stamp:#A83A2E; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);background-image:repeating-linear-gradient(transparent, transparent 27px, var(--paper-line) 28px);color:var(--ink);font-family:'Noto Sans TC','Noto Sans',sans-serif;padding:24px 14px 60px;}
+  .wrap{max-width:600px;margin:0 auto;}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  h1{font-family:'Noto Serif TC',serif;font-weight:700;font-size:26px;margin:0 0 14px;letter-spacing:.02em;}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px;}
+  .tab-btn{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .tab-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .view{display:none;} .view.active{display:block;}
+  .hero{position:relative;background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:22px 20px 20px;margin-bottom:16px;overflow:hidden;}
+  .hero-label{font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+  .hero-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;letter-spacing:-.01em;}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;padding:3px 9px;border-radius:999px;margin-top:10px;}
+  .up{color:var(--red);background:var(--red-bg);} .down{color:var(--green);background:var(--green-bg);}
+  .stamp{position:absolute;top:16px;right:18px;width:60px;height:60px;border-radius:50%;border:2px solid var(--stamp);color:var(--stamp);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:'Noto Serif TC',serif;font-weight:700;font-size:10px;line-height:1.3;transform:rotate(-9deg);opacity:.75;text-align:center;}
+  .stamp small{font-size:9px;font-weight:500;letter-spacing:.06em;}
+  .section-title{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;color:var(--ink-soft);margin:20px 2px 8px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--paper-line);}
+  .ledger{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);overflow:hidden;}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px dashed var(--paper-line);}
+  .row:last-child{border-bottom:none;}
+  .row-name{font-size:14px;font-weight:500;}
+  .row-right{text-align:right;}
+  .row-value{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;}
+  .row-chg{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:2px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:14px 15px;}
+  .stat-label{font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .stat-usd{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;}
+  .stat-twd{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .stat-pct{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:6px;display:inline-block;}
+  .tblwrap{overflow-x:auto;border:1px solid var(--paper-line);border-radius:var(--radius);background:var(--card);}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  th{font-family:'Noto Sans TC',sans-serif;font-weight:500;color:var(--ink-soft);text-align:right;padding:9px 10px;border-bottom:1px solid var(--paper-line);white-space:nowrap;background:var(--card);}
+  th:first-child, td:first-child{text-align:left;}
+  td{font-family:'JetBrains Mono',monospace;text-align:right;padding:8px 10px;border-bottom:1px dashed var(--paper-line);white-space:nowrap;}
+  tr:last-child td{border-bottom:none;}
+  .pos{color:var(--red);} .neg{color:var(--green);}
+  .type-buy{color:var(--red);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
+  .type-sell{color:var(--green);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
+  .type-split{color:var(--gold);font-family:'Noto Sans TC',sans-serif;font-size:11.5px;}
+  .chart-box{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px;position:relative;height:240px;}
+  .foot-note{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:10px;}
+  .cell-input{width:74px;font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;border:1px solid var(--paper-line);border-radius:6px;padding:3px 6px;background:#fff;color:var(--ink);}
+  .form-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:14px 15px;margin-bottom:14px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .form-grid label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;}
+  .form-grid input,.form-grid select{width:100%;font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid var(--paper-line);border-radius:8px;padding:7px 8px;background:#fff;color:var(--ink);}
+  .btn{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;padding:9px 16px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink);cursor:pointer;}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .btn.small{padding:4px 10px;font-size:11.5px;}
+  .btn:active{transform:scale(.97);}
+  .del-btn{color:var(--red);cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:11.5px;background:none;border:none;padding:2px 4px;}
+  textarea{width:100%;font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid var(--paper-line);border-radius:8px;padding:8px;background:#fff;color:var(--ink);min-height:70px;}
+  .collapse-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:10px 2px;font-size:13px;font-weight:500;color:var(--ink-soft);}
+  .save-hint{font-size:11.5px;color:var(--ink-faint);margin-top:8px;text-align:center;}
+  .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .title-row h1{margin:0;}
+  .refresh-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  .refresh-btn:active{transform:rotate(45deg);}
+  .refresh-btn svg{width:18px;height:18px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:12.5px;padding:9px 16px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;}
+  .toast.show{opacity:1;}
+  .period-tabs{display:flex;gap:6px;margin-bottom:12px;}
+  .period-btn{font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
+  .period-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .hilo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .hilo-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:12px 14px;}
+  .hilo-title{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .hilo-line{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span>PASSBOOK / 資產總覽</span><span id="todayLabel"></span></div>
+  <div class="title-row">
+    <h1>美股記帳</h1>
+    <div class="refresh-btn" id="refreshBtn" title="請 Claude 重新同步試算表">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-view="overview">總覽</button>
+    <button class="tab-btn" data-view="holdings">持股明細</button>
+    <button class="tab-btn" data-view="trend">走勢</button>
+    <button class="tab-btn" data-view="tx">交易紀錄</button>
+    <button class="tab-btn" data-view="div">股息紀錄</button>
+    <button class="tab-btn" data-view="settings">設定</button>
+  </div>
+
+  <div class="view active" id="view-overview"></div>
+  <div class="view" id="view-holdings"></div>
+  <div class="view" id="view-trend">
+    <div class="section-title">市值走勢（歷史快照）</div>
+    <div class="period-tabs">
+      <button class="period-btn" data-period="1M">1個月</button>
+      <button class="period-btn active" data-period="3M">3個月</button>
+      <button class="period-btn" data-period="6M">6個月</button>
+      <button class="period-btn" data-period="YTD">YTD</button>
+    </div>
+    <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    <div class="hilo-grid" id="hiloGrid"></div>
+    <div class="foot-note">紅線：美股市值（TWD）　藍線：台股市值（TWD）— 此圖為靜態歷史資料，不會隨新交易自動延伸。</div>
+  </div>
+  <div class="view" id="view-tx"></div>
+  <div class="view" id="view-div"></div>
+  <div class="view" id="view-settings"></div>
+
+  <div class="save-hint" id="saveHint"></div>
+</div>
+
+<script>
+const now = new Date();
+document.getElementById('todayLabel').textContent = now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'trend' && !window.__chartDrawn){ drawChart(); window.__chartDrawn = true; }
+  });
+});
+
+function fmt(n){ return Math.round(n||0).toLocaleString('en-US'); }
+function fmt2(n){ return Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+const ACCOUNTS = [
+  {key:'JS-US', label:'JS美股', currency:'USD'},
+  {key:'JS-TW', label:'JS台股', currency:'TWD'},
+  {key:'Mia-TW', label:'Mia台股', currency:'TWD'}
+];
+
+const SEED_TXS = [
+{d:'2023-06-16',account:'JS-US',type:'Buy',t:'AAPL',shares:20,price:185,fee:42.18},
+{d:'2023-07-26',account:'JS-US',type:'Buy',t:'TSLA',shares:15,price:266,fee:45.48},
+{d:'2023-08-21',account:'JS-US',type:'Buy',t:'TSLA',shares:15,price:224.85,fee:38.44},
+{d:'2023-09-11',account:'JS-US',type:'Sell',t:'TSLA',shares:15,price:263,fee:26.22},
+{d:'2023-10-19',account:'JS-US',type:'Buy',t:'TSLA',shares:15,price:220,fee:37.62},
+{d:'2023-10-19',account:'JS-US',type:'Buy',t:'NVDA',shares:5,price:420,fee:23.94},
+{d:'2023-11-29',account:'JS-US',type:'Sell',t:'AAPL',shares:20,price:191,fee:26.34},
+{d:'2023-12-19',account:'JS-US',type:'Sell',t:'NVDA',shares:5,price:500,fee:26.38},
+{d:'2023-12-27',account:'JS-US',type:'Sell',t:'TSLA',shares:15,price:262,fee:26.42},
+{d:'2024-01-05',account:'JS-US',type:'Buy',t:'MSFT',shares:10,price:369,fee:1},
+{d:'2024-01-10',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:540,fee:1},
+{d:'2024-01-22',account:'JS-US',type:'Buy',t:'TSLA',shares:15,price:216,fee:1},
+{d:'2024-01-29',account:'JS-US',type:'Buy',t:'AMD',shares:25,price:175,fee:15},
+{d:'2024-01-30',account:'JS-US',type:'Buy',t:'SMCI',shares:10,price:520,fee:1},
+{d:'2024-02-05',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:680,fee:1},
+{d:'2024-02-07',account:'JS-US',type:'Buy',t:'SMCI',shares:10,price:660,fee:1},
+{d:'2024-02-14',account:'JS-US',type:'Buy',t:'SMCI',shares:10,price:830,fee:1},
+{d:'2024-02-14',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:738,fee:1},
+{d:'2024-02-16',account:'JS-US',type:'Sell',t:'SMCI',shares:10,price:880,fee:26.55},
+{d:'2024-02-16',account:'JS-US',type:'Sell',t:'SMCI',shares:10,price:880,fee:0},
+{d:'2024-02-23',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:815,fee:1},
+{d:'2024-02-29',account:'JS-US',type:'Buy',t:'SMCI',shares:10,price:860,fee:1},
+{d:'2024-03-08',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:880,fee:1},
+{d:'2024-04-04',account:'JS-US',type:'Buy',t:'NVDA',shares:10,price:880,fee:1},
+{d:'2024-05-01',account:'JS-US',type:'Buy',t:'SMCI',shares:10,price:720,fee:1},
+{d:'2024-05-23',account:'JS-US',type:'Buy',t:'ARM',shares:40,price:112,fee:1},
+{d:'2024-06-10',account:'JS-US',type:'Split',t:'NVDA',shares:0,price:10,fee:0},
+{d:'2024-06-18',account:'JS-US',type:'Buy',t:'AMZN',shares:25,price:182,fee:1},
+{d:'2024-06-24',account:'JS-US',type:'Buy',t:'AMZN',shares:25,price:188,fee:1},
+{d:'2024-07-03',account:'JS-US',type:'Buy',t:'TSLA',shares:40,price:245,fee:15},
+{d:'2024-07-24',account:'JS-US',type:'Buy',t:'TSM',shares:25,price:160,fee:1},
+{d:'2024-07-29',account:'JS-US',type:'Sell',t:'ARM',shares:40,price:142.15,fee:15.17},
+{d:'2024-09-26',account:'JS-US',type:'Sell',t:'SMCI',shares:10,price:400,fee:18.34},
+{d:'2024-09-26',account:'JS-US',type:'Sell',t:'SMCI',shares:10,price:400,fee:0},
+{d:'2024-09-26',account:'JS-US',type:'Sell',t:'SMCI',shares:10,price:400,fee:0},
+{d:'2024-09-27',account:'JS-US',type:'Buy',t:'MSFT',shares:20,price:430,fee:15},
+{d:'2024-09-30',account:'JS-US',type:'Buy',t:'TSM',shares:25,price:172,fee:1},
+{d:'2024-11-06',account:'JS-US',type:'Sell',t:'TSLA',shares:15,price:288,fee:30.24},
+{d:'2024-11-11',account:'JS-US',type:'Buy',t:'TSM',shares:30,price:193,fee:1},
+{d:'2024-12-13',account:'JS-US',type:'Buy',t:'NVDA',shares:50,price:133,fee:1},
+{d:'2024-12-19',account:'JS-US',type:'Sell',t:'TSLA',shares:15,price:430,fee:15.18},
+{d:'2025-01-27',account:'JS-US',type:'Buy',t:'NVDA',shares:50,price:125,fee:1},
+{d:'2025-01-27',account:'JS-US',type:'Buy',t:'TSM',shares:50,price:196,fee:1},
+{d:'2025-01-27',account:'JS-US',type:'Buy',t:'TSLA',shares:25,price:400,fee:15},
+{d:'2025-01-27',account:'JS-US',type:'Buy',t:'TSLA',shares:25,price:390,fee:15},
+{d:'2025-03-10',account:'JS-US',type:'Buy',t:'TSLA',shares:30,price:235,fee:15},
+{d:'2025-03-10',account:'JS-US',type:'Buy',t:'TSM',shares:30,price:168,fee:1},
+{d:'2025-06-11',account:'JS-US',type:'Buy',t:'AMZN',shares:50,price:215,fee:1},
+{d:'2025-09-03',account:'JS-US',type:'Buy',t:'GLW',shares:150,price:66.5,fee:15},
+{d:'2025-09-10',account:'JS-US',type:'Buy',t:'ONDS',shares:1800,price:5.5,fee:15},
+{d:'2025-10-08',account:'JS-US',type:'Sell',t:'AMD',shares:25,price:220,fee:15},
+{d:'2025-10-14',account:'JS-US',type:'Buy',t:'NVDA',shares:50,price:180,fee:1},
+{d:'2026-01-21',account:'JS-US',type:'Buy',t:'GOOG',shares:20,price:330,fee:1},
+{d:'2026-02-03',account:'JS-US',type:'Buy',t:'GOOG',shares:10,price:339.96,fee:1},
+{d:'2026-02-17',account:'JS-US',type:'Buy',t:'GOOG',shares:20,price:298,fee:1},
+{d:'2026-06-01',account:'JS-US',type:'Buy',t:'GLW',shares:50,price:175,fee:15},
+{d:'2026-07-07',account:'JS-US',type:'Buy',t:'SPCX',shares:50,price:150,fee:15},
+{d:'2026-08-06',account:'JS-US',type:'Sell',t:'MSFT',shares:10,price:500,fee:22.82},
+{d:'2026-08-06',account:'JS-US',type:'Sell',t:'MSFT',shares:20,price:500,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'2330',shares:2600,price:2370,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'2383',shares:300,price:5240,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'2382',shares:2500,price:298,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'2454',shares:200,price:3900,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'3443',shares:150,price:4545,fee:0},
+{d:'2024-01-01',account:'JS-TW',type:'Buy',t:'2308',shares:500,price:1650,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'2330',shares:930,price:2370,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'2382',shares:1100,price:298,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'2317',shares:600,price:260,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'00895',shares:3000,price:49.84,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'00733',shares:1000,price:63.2,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'00981A',shares:2000,price:28.03,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'0056',shares:1000,price:51.05,fee:0},
+{d:'2024-01-01',account:'Mia-TW',type:'Buy',t:'2308',shares:10,price:1650,fee:0}
+];
+
+const SEED_DIVS = [
+{d:'2023-08-21',t:'AAPL',shares:20,net:3.36},{d:'2023-11-20',t:'AAPL',shares:20,net:3.36},
+{d:'2024-01-02',t:'NVDA',shares:5,net:0.14},{d:'2024-03-18',t:'MSFT',shares:10,net:5.25},
+{d:'2024-04-10',t:'NVDA',shares:40,net:1.11},{d:'2024-06-14',t:'MSFT',shares:10,net:5.25},
+{d:'2024-07-01',t:'NVDA',shares:600,net:4.20},{d:'2024-09-13',t:'MSFT',shares:10,net:5.25},
+{d:'2024-10-07',t:'NVDA',shares:600,net:4.20},{d:'2024-10-11',t:'TSM',shares:25,net:12.33},
+{d:'2024-12-13',t:'MSFT',shares:30,net:17.42},{d:'2024-12-30',t:'NVDA',shares:600,net:4.20},
+{d:'2025-01-13',t:'TSM',shares:80,net:38.43},{d:'2025-03-14',t:'MSFT',shares:30,net:17.42},
+{d:'2025-04-07',t:'NVDA',shares:700,net:4.90},{d:'2025-04-14',t:'TSM',shares:160,net:85.65},
+{d:'2025-06-16',t:'MSFT',shares:30,net:17.42},{d:'2025-07-04',t:'NVDA',shares:700,net:4.90},
+{d:'2025-07-14',t:'TSM',shares:160,net:98.63},{d:'2025-09-12',t:'MSFT',shares:30,net:17.43},
+{d:'2025-10-03',t:'NVDA',shares:700,net:4.90},{d:'2025-10-13',t:'TSM',shares:160,net:103.89},
+{d:'2025-12-12',t:'MSFT',shares:30,net:19.10},{d:'2025-12-15',t:'GLW',shares:150,net:29.40},
+{d:'2025-12-29',t:'NVDA',shares:750,net:5.25},{d:'2026-01-12',t:'TSM',shares:160,net:100.54},
+{d:'2026-03-13',t:'MSFT',shares:30,net:19.11},{d:'2026-03-17',t:'GOOG',shares:50,net:7.34},
+{d:'2026-03-31',t:'GLW',shares:150,net:29.39},{d:'2026-04-02',t:'NVDA',shares:750,net:5.24},
+{d:'2026-04-15',t:'TSM',shares:160,net:118.68},{d:'2026-06-15',t:'MSFT',shares:30,net:19.11},
+{d:'2026-06-16',t:'GOOG',shares:50,net:7.70},{d:'2026-06-30',t:'NVDA',shares:750,net:131.25},
+{d:'2026-07-01',t:'GLW',shares:150,net:29.39},{d:'2026-07-14',t:'TSM',shares:160,net:118.72}
+];
+
+const SEED_PRICES = {
+  TSLA:328.58, NVDA:223.96, AMZN:274.48, TSM:420.04, GLW:165.68, ONDS:9.11, GOOG:353.47, SPCX:133.11,
+  AAPL:313.33, MSFT:499.99, AMD:483.36, SMCI:31.13, ARM:282.57,
+  '2330':2370, '2383':5240, '2382':298, '2454':3900, '3443':4545, '2308':1650, '2317':260,
+  '00895':49.84, '00733':63.2, '00981A':28.03, '0056':51.05
+};
+const SEED_CHG = {
+  TSLA:2.8, NVDA:2.3, AMZN:0.8, TSM:0.4, GLW:5.4, ONDS:4.2, GOOG:-0.9, SPCX:15.8,
+  AAPL:0.3, MSFT:0.0, AMD:-1.2, SMCI:6.0, ARM:-1.4,
+  '2330':0.2, '2383':-1.2, '2382':-1.3, '2454':-0.5, '3443':1.5, '2308':-1.8, '2317':-1.7,
+  '00895':-0.6, '00733':-2.2, '00981A':-2.8, '0056':-0.5
+};
+
+const NAMES = {'2330':'台積電','2383':'台光電','2382':'廣達','2454':'聯發科','3443':'創意','2308':'台達電','2317':'鴻海','00895':'富邦未來車','00733':'富邦台灣中小','00981A':'主動統一台股增長','0056':'元大高股息'};
+
+let state = { txs:[], divs:[], prices:{}, chg:{}, fx:32.3, finnhubKey:'' };
+
+function seedState(){
+  state = {
+    txs: SEED_TXS.map(x=>({id:uid(), ...x})),
+    divs: SEED_DIVS.map(x=>({id:uid(), ...x})),
+    prices: {...SEED_PRICES},
+    chg: {...SEED_CHG},
+    fx: 32.3,
+    finnhubKey: ''
+  };
+}
+
+const isClaudeEnv = typeof window.storage !== 'undefined';
+
+async function storageGet(key){
+  if(isClaudeEnv){
+    try{ const r = await window.storage.get(key, false); return r ? r.value : null; }catch(e){ return null; }
+  } else {
+    return localStorage.getItem(key);
+  }
+}
+async function storageSet(key, value){
+  if(isClaudeEnv){
+    try{ await window.storage.set(key, value, false); return true; }catch(e){ return false; }
+  } else {
+    try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+  }
+}
+
+async function persist(){
+  const ok = await storageSet('portfolio-state-v1', JSON.stringify(state));
+  document.getElementById('saveHint').textContent = ok ? ('已自動儲存・' + new Date().toLocaleTimeString('zh-TW')) : '儲存失敗，請稍後再試';
+}
+
+async function loadState(){
+  const raw = await storageGet('portfolio-state-v1');
+  if(raw){ try{ state = JSON.parse(raw); if(state.finnhubKey===undefined) state.finnhubKey=''; return; }catch(e){} }
+  seedState();
+  await persist();
+}
+
+function computeHoldings(){
+  const pos = {};
+  const txs = [...state.txs].sort((a,b)=> a.d.localeCompare(b.d));
+  txs.forEach(x=>{
+    const key = x.account+':'+x.t;
+    if(!pos[key]) pos[key] = { account:x.account, t:x.t, shares:0, avgCost:0, realized:0 };
+    const p = pos[key];
+    if(x.type === 'Buy'){
+      const cost = x.shares*x.price + (x.fee||0);
+      const newShares = p.shares + x.shares;
+      p.avgCost = newShares>0 ? (p.avgCost*p.shares + cost) / newShares : 0;
+      p.shares = newShares;
+    } else if(x.type === 'Sell'){
+      const proceeds = x.shares*x.price - (x.fee||0);
+      p.realized += proceeds - p.avgCost*x.shares;
+      p.shares -= x.shares;
+    } else if(x.type === 'Split'){
+      const ratio = x.price || 1;
+      p.shares *= ratio;
+      p.avgCost = ratio ? p.avgCost/ratio : p.avgCost;
+    }
+  });
+  return Object.values(pos).filter(p => p.shares > 0.0001);
+}
+
+function priceOf(t){ return state.prices[t] !== undefined ? state.prices[t] : 0; }
+function chgOf(t){ return state.chg[t] !== undefined ? state.chg[t] : 0; }
+function nameOf(t){ return NAMES[t] || ''; }
+
+function renderAll(){
+  const holdings = computeHoldings();
+  renderOverview(holdings);
+  renderHoldings(holdings);
+  renderTx();
+  renderDiv();
+  renderSettings();
+}
+
+function renderOverview(holdings){
+  const byAccount = {};
+  ACCOUNTS.forEach(a=> byAccount[a.key] = { mvTWD:0, mvNative:0, cost:0, chgTWD:0 });
+  holdings.forEach(h=>{
+    const acc = ACCOUNTS.find(a=>a.key===h.account);
+    const price = priceOf(h.t);
+    const mvNative = h.shares * price;
+    const mvTWD = acc.currency === 'USD' ? mvNative * state.fx : mvNative;
+    const costTWD = acc.currency === 'USD' ? h.shares*h.avgCost*state.fx : h.shares*h.avgCost;
+    const chgTWD = mvTWD * (chgOf(h.t)/100);
+    byAccount[h.account].mvTWD += mvTWD;
+    byAccount[h.account].mvNative += mvNative;
+    byAccount[h.account].cost += costTWD;
+    byAccount[h.account].chgTWD += chgTWD;
+  });
+  const totalMV = ACCOUNTS.reduce((s,a)=> s+byAccount[a.key].mvTWD, 0);
+  const totalChg = ACCOUNTS.reduce((s,a)=> s+byAccount[a.key].chgTWD, 0);
+  const totalPct = totalMV ? (totalChg/(totalMV-totalChg))*100 : 0;
+
+  const usAcc = byAccount['JS-US'];
+  const usCostNative = usAcc.mvNative ? usAcc.cost/state.fx : 0;
+  const usUnrealUSD = usAcc.mvNative - usCostNative;
+  const usUnrealPct = usCostNative ? (usUnrealUSD/usCostNative)*100 : 0;
+  const usChgUSD = usAcc.chgTWD / state.fx;
+  const usChgPct = (usAcc.mvNative-usChgUSD) ? (usChgUSD/(usAcc.mvNative-usChgUSD))*100 : 0;
+
+  const totalDiv = state.divs.reduce((s,d)=>s+d.net,0);
+  const totalRealized = computeRealizedUSD();
+
+  const el = document.getElementById('view-overview');
+  el.innerHTML = `
+    <div class="hero">
+      <div class="stamp"><small>本日</small>結餘<small id="stampDate2"></small></div>
+      <div class="hero-label">總市值（台幣）</div>
+      <div class="hero-value">NT$ ${fmt(totalMV)}</div>
+      <div class="badge ${totalPct>=0?'up':'down'}">${totalPct>=0?'▲':'▼'} ${Math.abs(totalPct).toFixed(2)}%</div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);margin-left:6px;">${totalChg>=0?'+':''}${fmt(totalChg)}</span>
+    </div>
+    <div class="section-title">帳戶明細</div>
+    <div class="ledger">
+      ${ACCOUNTS.map(a=>{
+        const d = byAccount[a.key];
+        const pct = d.mvTWD ? (d.chgTWD/(d.mvTWD-d.chgTWD))*100 : 0;
+        return `<div class="row"><div class="row-name">${a.label}</div><div class="row-right">
+          <div class="row-value">NT$ ${fmt(d.mvTWD)}</div>
+          <div class="row-chg" style="color:${pct>=0?'var(--red)':'var(--green)'}">${pct>=0?'▲':'▼'} ${Math.abs(pct).toFixed(2)}% (${d.chgTWD>=0?'+':''}${fmt(d.chgTWD)})</div>
+        </div></div>`;
+      }).join('')}
+    </div>
+    <div class="section-title">美股概況</div>
+    <div class="grid2">
+      <div class="stat"><div class="stat-label">美股市值</div><div class="stat-usd">$ ${fmt2(usAcc.mvNative)}</div><div class="stat-twd">NT$ ${fmt(usAcc.mvTWD)}</div></div>
+      <div class="stat"><div class="stat-label">今日漲跌</div><div class="stat-usd">$ ${fmt2(usChgUSD)}</div><div class="stat-pct"><span class="badge ${usChgPct>=0?'up':'down'}" style="margin:0">${usChgPct>=0?'▲':'▼'} ${Math.abs(usChgPct).toFixed(2)}%</span></div></div>
+      <div class="stat"><div class="stat-label">未實現損益</div><div class="stat-usd">$ ${fmt2(usUnrealUSD)}</div><div class="stat-pct" style="color:var(--ink-soft)">佔成本 ${usUnrealPct.toFixed(1)}%</div></div>
+      <div class="stat"><div class="stat-label">總成本</div><div class="stat-usd">$ ${fmt2(usCostNative)}</div><div class="stat-twd">NT$ ${fmt(usAcc.cost)}</div></div>
+    </div>
+    <div class="section-title">賣出損益 + 股息</div>
+    <div class="ledger">
+      <div class="row"><div class="row-name">累計金額</div><div class="row-right"><div class="row-value">$ ${fmt2(totalRealized+totalDiv)}</div><div class="row-chg">NT$ ${fmt((totalRealized+totalDiv)*state.fx)}</div></div></div>
+    </div>
+    <div class="foot-note">美元匯率 <input class="cell-input" id="fxInput" type="number" step="0.01" value="${state.fx}" style="width:64px"> （更新後套用到所有美股台幣換算）</div>
+  `;
+  document.getElementById('stampDate2').textContent = now.toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
+  document.getElementById('fxInput').onchange = e => { state.fx = parseFloat(e.target.value)||state.fx; persist(); renderAll(); };
+}
+
+function computeRealizedUSD(){
+  const pos = {};
+  let realized = 0;
+  const txs = [...state.txs].sort((a,b)=> a.d.localeCompare(b.d));
+  txs.forEach(x=>{
+    if(x.account !== 'JS-US') return;
+    const key = x.t;
+    if(!pos[key]) pos[key] = { shares:0, avgCost:0 };
+    const p = pos[key];
+    if(x.type === 'Buy'){
+      const cost = x.shares*x.price + (x.fee||0);
+      const newShares = p.shares + x.shares;
+      p.avgCost = newShares>0 ? (p.avgCost*p.shares + cost) / newShares : 0;
+      p.shares = newShares;
+    } else if(x.type === 'Sell'){
+      const proceeds = x.shares*x.price - (x.fee||0);
+      realized += proceeds - p.avgCost*x.shares;
+      p.shares -= x.shares;
+    } else if(x.type === 'Split'){
+      const ratio = x.price || 1;
+      p.shares *= ratio; p.avgCost = ratio ? p.avgCost/ratio : p.avgCost;
+    }
+  });
+  return realized;
+}
+
+function renderHoldings(holdings){
+  const el = document.getElementById('view-holdings');
+  let html = `<div class="form-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="collapse-head" id="batchToggle" style="padding:0;">批次更新股價 / 漲跌幅 <span id="batchArrow">▾</span></div>
+      <button class="btn small" id="liveFetchBtn">${isClaudeEnv ? '抓取即時報價（需先在設定分頁完成）' : '抓取即時報價'}</button>
+    </div>
+    <div id="batchBody" style="display:none;margin-top:10px;">
+      <textarea id="batchInput" placeholder="每行一筆，格式：代號 股價 漲跌%&#10;例如：NVDA 225.50 3.1"></textarea>
+      <div style="margin-top:8px;"><button class="btn primary small" id="batchApply">套用更新</button></div>
+    </div>
+  </div>`;
+
+  ACCOUNTS.forEach(a=>{
+    const rows = holdings.filter(h=>h.account===a.key);
+    if(!rows.length) return;
+    html += `<div class="section-title">${a.label}</div><div class="tblwrap"><table>
+      <tr><th>股票</th><th>股數</th><th>均價</th><th>現價</th><th>漲跌%</th><th>市值</th><th>未實現損益</th></tr>
+      ${rows.map(h=>{
+        const price = priceOf(h.t);
+        const chg = chgOf(h.t);
+        const mv = h.shares*price;
+        const unreal = mv - h.shares*h.avgCost;
+        const unrealPct = h.avgCost ? (unreal/(h.shares*h.avgCost))*100 : 0;
+        const nm = nameOf(h.t);
+        return `<tr>
+          <td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;">${h.t}${nm?`<br><span style="color:var(--ink-faint);font-size:11px;">${nm}</span>`:''}</td>
+          <td>${fmt(h.shares)}</td>
+          <td>${fmt2(h.avgCost)}</td>
+          <td><input class="cell-input" type="number" step="0.01" value="${price}" data-t="${h.t}" data-field="price"></td>
+          <td><input class="cell-input" type="number" step="0.1" value="${chg}" data-t="${h.t}" data-field="chg" style="width:56px"></td>
+          <td>${fmt(mv)}</td>
+          <td class="${unreal>=0?'pos':'neg'}">${unreal>=0?'+':''}${fmt(unreal)} (${unrealPct>=0?'+':''}${unrealPct.toFixed(1)}%)</td>
+        </tr>`;
+      }).join('')}
+    </table></div>`;
+  });
+  el.innerHTML = html;
+
+  document.getElementById('liveFetchBtn').onclick = fetchLiveQuotes;
+  document.getElementById('batchToggle').onclick = ()=>{
+    const body = document.getElementById('batchBody');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    document.getElementById('batchArrow').textContent = isOpen ? '▾' : '▴';
+  };
+  document.getElementById('batchApply').onclick = ()=>{
+    const lines = document.getElementById('batchInput').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    lines.forEach(line=>{
+      const parts = line.split(/\s+/);
+      if(parts.length >= 2){
+        const t = parts[0].toUpperCase();
+        const price = parseFloat(parts[1]);
+        const chg = parts[2] !== undefined ? parseFloat(parts[2]) : undefined;
+        if(!isNaN(price)) state.prices[t] = price;
+        if(chg !== undefined && !isNaN(chg)) state.chg[t] = chg;
+      }
+    });
+    persist(); renderAll();
+  };
+  el.querySelectorAll('input[data-field]').forEach(inp=>{
+    inp.onchange = e=>{
+      const t = e.target.dataset.t, field = e.target.dataset.field;
+      const v = parseFloat(e.target.value);
+      if(isNaN(v)) return;
+      if(field==='price') state.prices[t] = v; else state.chg[t] = v;
+      persist(); renderAll();
+    };
+  });
+}
+
+function isTWTicker(t){ return /^\d/.test(t); }
+
+async function fetchLiveQuotes(){
+  const btn = document.getElementById('liveFetchBtn');
+  const holdings = computeHoldings();
+  const tickers = [...new Set(holdings.map(h=>h.t))];
+  if(!state.finnhubKey && tickers.some(t=>!isTWTicker(t))){
+    showToast('請先到「設定」分頁貼上你的 Finnhub API Key');
+    return;
+  }
+  btn.textContent = '抓取中…';
+  let okCount = 0, failCount = 0;
+  for(const t of tickers){
+    try{
+      if(isTWTicker(t)){
+        const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${t}.tw&json=1&delay=0`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const row = data && data.msgArray && data.msgArray[0];
+        if(row && row.z && row.z !== '-'){
+          const price = parseFloat(row.z);
+          const prevClose = parseFloat(row.y);
+          state.prices[t] = price;
+          if(prevClose) state.chg[t] = ((price - prevClose)/prevClose)*100;
+          okCount++;
+        } else { failCount++; }
+      } else {
+        const url = `https://finnhub.io/api/v1/quote?symbol=${t}&token=${state.finnhubKey}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if(data && data.c){
+          state.prices[t] = data.c;
+          state.chg[t] = data.dp;
+          okCount++;
+        } else { failCount++; }
+      }
+    }catch(e){ failCount++; }
+  }
+  btn.textContent = isClaudeEnv ? '抓取即時報價（需先在設定分頁完成）' : '抓取即時報價';
+  if(okCount){ await persist(); renderAll(); }
+  if(failCount && okCount){
+    showToast(`更新了 ${okCount} 檔，${failCount} 檔失敗（可能是台股 CORS 限制）`);
+  } else if(failCount && !okCount){
+    showToast('抓取失敗，請確認 API Key 或改用批次貼上更新');
+  } else {
+    showToast(`已更新 ${okCount} 檔即時報價`);
+  }
+}
+
+function renderSettings(){
+  const el = document.getElementById('view-settings');
+  el.innerHTML = `
+    <div class="section-title" style="margin-top:0;">即時報價設定</div>
+    <div class="form-card">
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;line-height:1.6;">
+        美股即時報價使用 <b>Finnhub</b>（免費申請，每分鐘 60 次額度）。到
+        <a href="https://finnhub.io/register" target="_blank" style="color:var(--gold);">finnhub.io/register</a>
+        免費註冊拿到 API Key 後貼在下面。台股報價會嘗試直接連證交所公開端點，不需要 Key，但部分瀏覽器環境可能因跨網域限制（CORS）而失敗，失敗時可改用「批次更新」手動貼上。
+      </div>
+      <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;">Finnhub API Key</label>
+      <input type="text" id="finnhubInput" placeholder="貼上你的 API Key" value="${state.finnhubKey||''}" style="width:100%;font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid var(--paper-line);border-radius:8px;padding:8px;background:#fff;color:var(--ink);">
+      <button class="btn primary small" id="saveKeyBtn" style="margin-top:8px;">儲存 Key</button>
+    </div>
+    <div class="section-title">在手機上使用</div>
+    <div class="form-card" style="font-size:12.5px;color:var(--ink-soft);line-height:1.7;">
+      這個頁面本身已經是手機版面（響應式設計）。若要像 App 一樣從主畫面直接開啟：<br>
+      1. 把這個 HTML 檔案上傳到一個可公開存取的網址（例如 Netlify Drop、GitHub Pages、Vercel，免費且不需寫程式）。<br>
+      2. 用手機瀏覽器打開該網址。<br>
+      3. iOS Safari：分享 → 加入主畫面／Android Chrome：選單 → 加到主畫面。<br>
+      <br>
+      ⚠️ 注意：即時報價（呼叫 Finnhub／證交所 API）只有在<b>外部網址</b>開啟時才能運作，Claude.ai 內建的預覽環境基於安全限制無法連到這些網域。資料儲存也會從 Claude 帳號儲存自動切換成瀏覽器本機儲存（localStorage）。
+    </div>
+    <div class="foot-note">目前執行環境：${isClaudeEnv ? 'Claude.ai 預覽（即時報價無法連線，儲存於 Claude 帳號）' : '外部瀏覽器（可連線即時報價，儲存於本機瀏覽器）'}</div>
+  `;
+  document.getElementById('saveKeyBtn').onclick = ()=>{
+    state.finnhubKey = document.getElementById('finnhubInput').value.trim();
+    persist();
+    showToast('已儲存 API Key');
+  };
+}
+
+
+function renderTx(){
+  const el = document.getElementById('view-tx');
+  const sorted = [...state.txs].sort((a,b)=> b.d.localeCompare(a.d));
+  const typeLabel = {Buy:'買進',Sell:'賣出',Split:'分割'};
+  const typeClass = {Buy:'type-buy',Sell:'type-sell',Split:'type-split'};
+  el.innerHTML = `
+    <div class="form-card">
+      <div class="section-title" style="margin-top:0;">新增交易</div>
+      <div class="form-grid">
+        <div><label>日期</label><input type="date" id="txDate" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label>帳戶</label><select id="txAccount">${ACCOUNTS.map(a=>`<option value="${a.key}">${a.label}</option>`).join('')}</select></div>
+        <div><label>類型</label><select id="txType"><option value="Buy">買進</option><option value="Sell">賣出</option><option value="Split">股票分割</option></select></div>
+        <div><label>股票代號</label><input type="text" id="txTicker" placeholder="NVDA / 2330"></div>
+        <div id="txSharesWrap"><label>股數</label><input type="number" id="txShares" placeholder="0"></div>
+        <div id="txPriceWrap"><label>價格（分割填比例，如10）</label><input type="number" step="0.01" id="txPrice" placeholder="0"></div>
+        <div><label>手續費（選填）</label><input type="number" step="0.01" id="txFee" placeholder="0"></div>
+      </div>
+      <button class="btn primary" id="txAdd">新增交易</button>
+    </div>
+    <div class="section-title">交易紀錄（新到舊）</div>
+    <div class="tblwrap"><table>
+      <tr><th>日期</th><th>帳戶</th><th>類型</th><th>代號</th><th>股數</th><th>價格</th><th></th></tr>
+      ${sorted.map(x=>`<tr>
+        <td style="font-family:'Noto Sans TC',sans-serif;">${x.d}</td>
+        <td style="font-family:'Noto Sans TC',sans-serif;font-size:11px;color:var(--ink-soft);">${ACCOUNTS.find(a=>a.key===x.account)?.label||x.account}</td>
+        <td class="${typeClass[x.type]}" style="text-align:left;">${typeLabel[x.type]}</td>
+        <td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;text-align:left;">${x.t}</td>
+        <td>${x.type==='Split'?'-':fmt(x.shares)}</td>
+        <td>${x.type==='Split'?('x'+x.price):fmt2(x.price)}</td>
+        <td><button class="del-btn" data-id="${x.id}">刪除</button></td>
+      </tr>`).join('')}
+    </table></div>
+  `;
+  document.getElementById('txAdd').onclick = ()=>{
+    const d = document.getElementById('txDate').value;
+    const account = document.getElementById('txAccount').value;
+    const type = document.getElementById('txType').value;
+    const t = document.getElementById('txTicker').value.trim().toUpperCase();
+    const shares = parseFloat(document.getElementById('txShares').value)||0;
+    const price = parseFloat(document.getElementById('txPrice').value)||0;
+    const fee = parseFloat(document.getElementById('txFee').value)||0;
+    if(!d || !t || (!shares && type!=='Split') || !price){ alert('請完整填寫日期、代號、股數與價格'); return; }
+    state.txs.push({id:uid(), d, account, type, t, shares, price, fee});
+    if(state.prices[t] === undefined) state.prices[t] = price;
+    persist(); renderAll();
+  };
+  el.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.txs = state.txs.filter(x=>x.id !== btn.dataset.id);
+      persist(); renderAll();
+    };
+  });
+}
+
+function renderDiv(){
+  const el = document.getElementById('view-div');
+  const sorted = [...state.divs].sort((a,b)=> b.d.localeCompare(a.d));
+  const sums = {};
+  state.divs.forEach(x=>{ sums[x.t] = (sums[x.t]||0) + x.net; });
+  const sumRows = Object.entries(sums).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML = `
+    <div class="form-card">
+      <div class="section-title" style="margin-top:0;">新增股息</div>
+      <div class="form-grid">
+        <div><label>發放日</label><input type="date" id="divDate" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label>股票代號</label><input type="text" id="divTicker" placeholder="NVDA"></div>
+        <div><label>持有股數</label><input type="number" id="divShares" placeholder="0"></div>
+        <div><label>實收股息$</label><input type="number" step="0.01" id="divNet" placeholder="0"></div>
+      </div>
+      <button class="btn primary" id="divAdd">新增股息</button>
+    </div>
+    <div class="section-title">股息累計（依股票代號）</div>
+    <div class="tblwrap"><table>
+      <tr><th>代號</th><th>累計實收$</th></tr>
+      ${sumRows.map(([t,v])=>`<tr><td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;text-align:left;">${t}</td><td class="pos">+${fmt2(v)}</td></tr>`).join('')}
+    </table></div>
+    <div class="section-title">股息明細（新到舊）</div>
+    <div class="tblwrap"><table>
+      <tr><th>發放日</th><th>代號</th><th>股數</th><th>實收$</th><th></th></tr>
+      ${sorted.map(x=>`<tr>
+        <td style="font-family:'Noto Sans TC',sans-serif;">${x.d}</td>
+        <td style="font-family:'Noto Sans TC',sans-serif;font-weight:500;text-align:left;">${x.t}</td>
+        <td>${fmt(x.shares)}</td>
+        <td class="pos">+${fmt2(x.net)}</td>
+        <td><button class="del-btn" data-id="${x.id}">刪除</button></td>
+      </tr>`).join('')}
+    </table></div>
+  `;
+  document.getElementById('divAdd').onclick = ()=>{
+    const d = document.getElementById('divDate').value;
+    const t = document.getElementById('divTicker').value.trim().toUpperCase();
+    const shares = parseFloat(document.getElementById('divShares').value)||0;
+    const net = parseFloat(document.getElementById('divNet').value)||0;
+    if(!d || !t || !net){ alert('請完整填寫發放日、代號與實收股息'); return; }
+    state.divs.push({id:uid(), d, t, shares, net});
+    persist(); renderAll();
+  };
+  el.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.divs = state.divs.filter(x=>x.id !== btn.dataset.id);
+      persist(); renderAll();
+    };
+  });
+}
+
+const trendData = [
+{d:'2026-02-13',us:10272123,tw:7973830},{d:'2026-02-14',us:10158109,tw:7973830},{d:'2026-02-15',us:10158109,tw:7973830},
+{d:'2026-02-16',us:10158109,tw:7973830},{d:'2026-02-17',us:10152607,tw:7973830},{d:'2026-02-18',us:10393714,tw:7973830},
+{d:'2026-02-19',us:10588865,tw:7973830},{d:'2026-02-20',us:10603123,tw:7973830},{d:'2026-02-21',us:10683160,tw:7973830},
+{d:'2026-02-22',us:10683160,tw:7973830},{d:'2026-02-23',us:10683160,tw:7973830},{d:'2026-02-24',us:10649577,tw:7917890},
+{d:'2026-02-25',us:10830701,tw:8164210},{d:'2026-02-26',us:10955007,tw:8608150},{d:'2026-02-27',us:10552027,tw:8584550},
+{d:'2026-02-28',us:10364388,tw:8584550},{d:'2026-03-01',us:10364388,tw:8584550},{d:'2026-03-02',us:10364388,tw:8584550},
+{d:'2026-03-03',us:10576938,tw:8535950},{d:'2026-03-04',us:10380947,tw:8333180},{d:'2026-03-05',us:10532649,tw:7999900},
+{d:'2026-03-06',us:10565333,tw:8212910},{d:'2026-03-07',us:10182534,tw:8184710},{d:'2026-03-08',us:10179334,tw:8184710},
+{d:'2026-03-09',us:10179334,tw:8184710},{d:'2026-03-10',us:10385175,tw:8012380},{d:'2026-03-11',us:10477660,tw:8211280},
+{d:'2026-03-12',us:10545369,tw:8560250},{d:'2026-03-13',us:10366563,tw:8434870},{d:'2026-03-14',us:10354543,tw:8395140},
+{d:'2026-03-15',us:10354543,tw:8395140},{d:'2026-03-16',us:10354543,tw:8395140},{d:'2026-03-17',us:10433292,tw:8298280},
+{d:'2026-03-18',us:10478416,tw:8415800},{d:'2026-03-19',us:10376222,tw:8568320},{d:'2026-03-20',us:10210185,tw:8441480},
+{d:'2026-03-21',us:9940222,tw:8383730},{d:'2026-03-22',us:9940222,tw:8383730},{d:'2026-03-23',us:9940222,tw:8383730},
+{d:'2026-03-24',us:10147900,tw:8243200},{d:'2026-03-25',us:10194619,tw:8202420},{d:'2026-03-26',us:10328391,tw:8371470},
+{d:'2026-03-27',us:9849122,tw:8397360},{d:'2026-03-28',us:9678197,tw:8323870},{d:'2026-03-29',us:9678197,tw:8323870},
+{d:'2026-03-30',us:9678197,tw:8323870},{d:'2026-03-31',us:9475915,tw:8133780},{d:'2026-04-01',us:9983080,tw:7973500},
+{d:'2026-04-02',us:10127047,tw:8407910},{d:'2026-04-03',us:10126215,tw:8224460},{d:'2026-04-04',us:10140223,tw:8224460},
+{d:'2026-04-05',us:10140223,tw:8224460},{d:'2026-04-06',us:10140223,tw:8224460},{d:'2026-04-07',us:10120607,tw:8224460},
+{d:'2026-04-08',us:10134216,tw:8425660},{d:'2026-04-09',us:10382549,tw:8936780},{d:'2026-04-10',us:10480897,tw:9005890},
+{d:'2026-04-11',us:10653012,tw:9233790},{d:'2026-04-12',us:10653012,tw:9233790},{d:'2026-04-13',us:10653012,tw:9233790},
+{d:'2026-04-14',us:10705579,tw:9194090},{d:'2026-04-15',us:10970973,tw:9547630},{d:'2026-04-16',us:11168371,tw:9650750},
+{d:'2026-04-17',us:11083853,tw:9775670},{d:'2026-04-18',us:11206285,tw:9618230},{d:'2026-04-19',us:11206285,tw:9618230},
+{d:'2026-04-20',us:11207353,tw:9618230},{d:'2026-04-21',us:11174928,tw:9841150},{d:'2026-04-22',us:11143159,tw:10086230},
+{d:'2026-04-23',us:11364961,tw:10144230},{d:'2026-04-24',us:11205915,tw:10201630},{d:'2026-04-25',us:11566383,tw:10696310},
+{d:'2026-04-26',us:11566128,tw:10696310},{d:'2026-04-27',us:11566128,tw:10696310},{d:'2026-04-28',us:11766654,tw:11194740},
+{d:'2026-04-29',us:11531155,tw:10932330},{d:'2026-04-30',us:11421172,tw:10854420},{d:'2026-05-01',us:11350882,tw:10743640},
+{d:'2026-05-02',us:11389501,tw:10743640},{d:'2026-05-03',us:11390008,tw:10743640},{d:'2026-05-05',us:11413933,tw:11384390},
+{d:'2026-05-06',us:11273125,tw:11390340},{d:'2026-05-07',us:11752425,tw:11635030},{d:'2026-05-08',us:11846023,tw:11896680},
+{d:'2026-05-09',us:11981311,tw:11755220},{d:'2026-05-12',us:12213628,tw:11770960},{d:'2026-05-13',us:12161222,tw:11770270},
+{d:'2026-05-14',us:12398537,tw:11593140},{d:'2026-05-15',us:12850201,tw:11708430},{d:'2026-05-16',us:12345777,tw:11424790},
+{d:'2026-05-19',us:12078651,tw:11331230},{d:'2026-05-21',us:12154828,tw:11007550},{d:'2026-05-22',us:12117524,tw:11459700},
+{d:'2026-05-23',us:11981507,tw:11746100},{d:'2026-05-26',us:11979412,tw:12205270},{d:'2026-05-27',us:12091129,tw:12024150},
+{d:'2026-05-28',us:12163282,tw:12175560},{d:'2026-05-29',us:12334417,tw:11928420},{d:'2026-05-30',us:12192483,tw:12261030},
+{d:'2026-06-02',us:12724429,tw:12910450},{d:'2026-06-03',us:12934294,tw:13002610},{d:'2026-06-04',us:12560723,tw:13232720},
+{d:'2026-06-05',us:12700461,tw:12985120},{d:'2026-06-06',us:11900123,tw:12841620},{d:'2026-06-09',us:12161552,tw:12455090},
+{d:'2026-06-10',us:11970838,tw:12741360},{d:'2026-06-11',us:11556180,tw:12409680},{d:'2026-06-12',us:11869393,tw:12391450},
+{d:'2026-06-13',us:11909040,tw:12592700},{d:'2026-06-16',us:12264798,tw:12996990},{d:'2026-06-17',us:11976152,tw:13340090},
+{d:'2026-06-18',us:11866110,tw:13346610},{d:'2026-06-19',us:12341285,tw:13511400},{d:'2026-06-20',us:12365028,tw:13511400},
+{d:'2026-06-23',us:12347783,tw:13929060},{d:'2026-06-24',us:11784501,tw:14088900},{d:'2026-06-25',us:11817868,tw:13655110},
+{d:'2026-06-26',us:11830131,tw:13656300},{d:'2026-06-27',us:11744647,tw:13138220},{d:'2026-06-30',us:12339328,tw:13373880},
+{d:'2026-07-01',us:12613571,tw:13676310},{d:'2026-07-02',us:12197940,tw:14113750},{d:'2026-07-03',us:11928342,tw:14036300},
+{d:'2026-07-07',us:12079387,tw:13851050},{d:'2026-07-08',us:12133277,tw:13626330},{d:'2026-07-09',us:12259673,tw:13731700},
+{d:'2026-07-10',us:12355441,tw:13546650},{d:'2026-07-11',us:12490812,tw:13546650},{d:'2026-07-14',us:12152253,tw:13568750},
+{d:'2026-07-15',us:12389794,tw:13373800},{d:'2026-07-16',us:12364062,tw:13530210},{d:'2026-07-17',us:12038878,tw:13501750},
+{d:'2026-07-18',us:11807010,tw:12481880},{d:'2026-07-21',us:11781366,tw:12485130},{d:'2026-07-22',us:12139373,tw:13124350},
+{d:'2026-07-23',us:12167055,tw:13295400},{d:'2026-07-24',us:11746575,tw:13338680},{d:'2026-07-25',us:11543636,tw:12909040},
+{d:'2026-07-29',us:11140771,tw:12891660},{d:'2026-07-30',us:10752018,tw:12361430},{d:'2026-07-31',us:11276312,tw:12384830},
+{d:'2026-08-01',us:11568929,tw:13584000},{d:'2026-08-04',us:12004474,tw:13582090},{d:'2026-08-05',us:12330668,tw:13499310},
+{d:'2026-08-06',us:12323250,tw:13935270},{d:'2026-08-07',us:11842427,tw:13760220},{d:'2026-08-08',us:12123549,tw:13789980}
+];
+
+let trendChartInstance = null;
+let currentPeriod = '3M';
+
+function filterByPeriod(period){
+  const last = new Date(trendData[trendData.length-1].d);
+  let start;
+  if(period === '1M'){ start = new Date(last); start.setMonth(start.getMonth()-1); }
+  else if(period === '3M'){ start = new Date(last); start.setMonth(start.getMonth()-3); }
+  else if(period === '6M'){ start = new Date(last); start.setMonth(start.getMonth()-6); }
+  else if(period === 'YTD'){ start = new Date(last.getFullYear(), 0, 1); }
+  return trendData.filter(x => new Date(x.d) >= start);
+}
+
+function labelOf(iso){ const [y,m,d] = iso.split('-'); return m+'/'+d; }
+
+function drawChart(period){
+  period = period || currentPeriod;
+  currentPeriod = period;
+  const data = filterByPeriod(period);
+
+  let usMaxI=0, usMinI=0, twMaxI=0, twMinI=0;
+  data.forEach((x,i)=>{
+    if(x.us > data[usMaxI].us) usMaxI = i;
+    if(x.us < data[usMinI].us) usMinI = i;
+    if(x.tw > data[twMaxI].tw) twMaxI = i;
+    if(x.tw < data[twMinI].tw) twMinI = i;
+  });
+
+  const usPointR = data.map((_,i)=> (i===usMaxI||i===usMinI) ? 5 : 0);
+  const usPointC = data.map((_,i)=> i===usMaxI ? '#B4362A' : i===usMinI ? '#7A9BC4' : '#B4362A');
+  const twPointR = data.map((_,i)=> (i===twMaxI||i===twMinI) ? 5 : 0);
+  const twPointC = data.map((_,i)=> i===twMaxI ? '#B4362A' : i===twMinI ? '#7A9BC4' : '#2358A8');
+
+  if(trendChartInstance){ trendChartInstance.destroy(); }
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  trendChartInstance = new Chart(ctx, {
+    type:'line',
+    data:{ labels: data.map(d=>labelOf(d.d)), datasets:[
+      {label:'美股市值', data: data.map(d=>d.us), borderColor:'#B4362A', backgroundColor:'transparent', tension:0.25, pointRadius: usPointR, pointBackgroundColor: usPointC, pointBorderColor: usPointC, borderWidth:2},
+      {label:'台股市值', data: data.map(d=>d.tw), borderColor:'#2358A8', backgroundColor:'transparent', tension:0.25, pointRadius: twPointR, pointBackgroundColor: twPointC, pointBorderColor: twPointC, borderWidth:2}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:6, font:{family:"'JetBrains Mono',monospace", size:10}, color:'#6B7186' }, grid:{ display:false } },
+        y:{ ticks:{ callback:v=>(v/10000).toFixed(0)+'萬', font:{family:"'JetBrains Mono',monospace", size:10}, color:'#6B7186' }, grid:{ color:'#DDD3B4' } }
+      }
+    }
+  });
+
+  document.getElementById('hiloGrid').innerHTML = `
+    <div class="hilo-card">
+      <div class="hilo-title">美股市值（TWD）</div>
+      <div class="hilo-line" style="color:var(--red)"><span>最高</span><span>NT$ ${fmt(data[usMaxI].us)}（${labelOf(data[usMaxI].d)}）</span></div>
+      <div class="hilo-line" style="color:#7A9BC4"><span>最低</span><span>NT$ ${fmt(data[usMinI].us)}（${labelOf(data[usMinI].d)}）</span></div>
+    </div>
+    <div class="hilo-card">
+      <div class="hilo-title">台股市值（TWD）</div>
+      <div class="hilo-line" style="color:var(--red)"><span>最高</span><span>NT$ ${fmt(data[twMaxI].tw)}（${labelOf(data[twMaxI].d)}）</span></div>
+      <div class="hilo-line" style="color:#7A9BC4"><span>最低</span><span>NT$ ${fmt(data[twMinI].tw)}（${labelOf(data[twMinI].d)}）</span></div>
+    </div>
+  `;
+}
+
+document.querySelectorAll('.period-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    drawChart(btn.dataset.period);
+  });
+});
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=> t.classList.remove('show'), 3200);
+}
+document.getElementById('refreshBtn').addEventListener('click', async ()=>{
+  const msg = '請幫我重新同步 Google 試算表最新資料，並更新這個 App';
+  try{
+    await navigator.clipboard.writeText(msg);
+    showToast('已複製提示訊息，貼到對話框給 Claude 即可同步');
+  }catch(e){
+    showToast('請在對話框跟 Claude 說：「請重新同步試算表」');
+  }
+});
+
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+</script>
+</body>
+</html>
